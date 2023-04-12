@@ -30,7 +30,7 @@ void setup()
   pinMode(R_STEP, OUTPUT);
   pinMode(R_DIR, OUTPUT);
 
-  /*
+  
   if(!mpu.begin()){
     Serial.println("Failed to detect mpu6050");
     while(1){
@@ -49,17 +49,26 @@ void setup()
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 
   delay(100);
-*/
+
   
 }
 void loop()
 {
   // Set motor direction clockwise
 
-  /*
+ 
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
-  */
+  
+
+  Serial.print("Acceleration X: ");
+  Serial.print(a.acceleration.x);
+  Serial.print(", Y: ");
+  Serial.print(a.acceleration.y);
+  Serial.print(", Z: ");
+  Serial.print(a.acceleration.z);
+  Serial.println(" m/s^2");
+  
   if (Serial3.available()) {
     value = Serial3.read();
     Serial.print(value);
