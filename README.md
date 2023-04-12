@@ -5,7 +5,7 @@
 - Commit message must be CLEAR and MEANINGFUL, that is, no messages like "Bug fix" or "new code", make it more specific.
 
 ### Branch naming rules
-- <type>/<name>
+- [type]/[name]
 - types of branch : 
   - feat(new feature)
   - fix(bug fix)
