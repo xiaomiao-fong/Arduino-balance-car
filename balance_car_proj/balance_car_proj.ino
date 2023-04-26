@@ -9,12 +9,12 @@ const int L_DIR = 32;
 const int L_STEP = 33;
 const int R_DIR = 30;
 const int R_STEP = 31;
-const int stepsPerRevolution = 1000;
-int time_gap = 500;
+const int stepsPerRevolution = 300;
 double t_angle = 0;
 
 
 char value;
+void motor_move(int dir, int time_gap);
 
 void setup()
 {
@@ -73,10 +73,25 @@ void loop()
     value = Serial3.read();
     Serial.print(value);
   }
-    
-  digitalWrite(L_DIR, HIGH);
-  digitalWrite(R_DIR, HIGH);
+
+  motor_move(2,500);
  
+  delay(50); 
+  
+ }
+
+
+void motor_move(int dir, int time_gap){
+
+  //1forward 2right 3backward 4left
+
+  if(dir == 1 || dir == 4) digitalWrite(R_DIR, HIGH);
+  else digitalWrite(R_DIR, LOW);
+
+  if(dir == 1 || dir == 2) digitalWrite(L_DIR, HIGH);
+  else digitalWrite(L_DIR, LOW);
+
+  
   for(int x = 0; x < stepsPerRevolution; x++)
   {
     digitalWrite(L_STEP, HIGH);
@@ -86,6 +101,5 @@ void loop()
     digitalWrite(R_STEP, LOW);
     delayMicroseconds(time_gap);
   }
-  delay(500); 
   
- }
+}
