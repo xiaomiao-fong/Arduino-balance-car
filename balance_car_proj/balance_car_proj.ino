@@ -1,6 +1,11 @@
 #include <Adafruit_MPU6050.h>
 #include <Adafruit_Sensor.h>
 #include <Wire.h>
+#define sampleTime 0.005
+#define Kp 1
+#define Ki 0.001
+#define Kd 0
+#define maxPower 600
 
 
 Adafruit_MPU6050 mpu;
@@ -11,10 +16,32 @@ const int R_DIR = 30;
 const int R_STEP = 31;
 const int stepsPerRevolution = 300;
 double t_angle = 0;
+double c_angle = 0;
+double p_angle = 0;
+double accX = 0;
+double accZ = 0;
+double motorPower = 0;
+double errorSum = 0;
 
 
 char value;
 void motor_move(int dir, int time_gap);
+
+void init_PID() {  
+  // initialize Timer1
+  cli();          // disable global interrupts
+  TCCR1A = 0;     // set entire TCCR1A register to 0
+  TCCR1B = 0;     // same for TCCR1B    
+  // set compare match register to set sample time 5ms
+  OCR1A = 9999;    
+  // turn on CTC mode
+  TCCR1B |= (1 << WGM12);
+  // Set CS11 bit for prescaling by 8
+  TCCR1B |= (1 << CS11);
+  // enable timer compare interrupt
+  TIMSK1 |= (1 << OCIE1A);
+  sei();          // enable global interrupts
+}
 
 void setup()
 {
@@ -48,6 +75,8 @@ void setup()
   // set filter bandwidth to 21 Hz
   mpu.setFilterBandwidth(MPU6050_BAND_21_HZ);
 
+  init_PID();
+
   delay(100);
 
   
@@ -60,6 +89,8 @@ void loop()
   sensors_event_t a, g, temp;
   mpu.getEvent(&a, &g, &temp);
   
+  accX = a.acceleration.x;
+  accZ = a.acceleration.z;
 
   Serial.print("Acceleration X: ");
   Serial.print(a.acceleration.x);
@@ -74,7 +105,10 @@ void loop()
     Serial.print(value);
   }
 
-  motor_move(2,500);
+  Serial.print("Motor power: ");
+  Serial.println(motorPower);
+
+  motor_move(1, maxPower/motorPower);
  
   delay(50); 
   
@@ -102,4 +136,18 @@ void motor_move(int dir, int time_gap){
     delayMicroseconds(time_gap);
   }
   
+}
+
+
+ISR(TIMER1_COMPA_vect){
+
+  c_angle = atan2(accX, accZ)*RAD_TO_DEG;
+
+  double a_err = c_angle - t_angle;
+  errorSum += a_err;
+  errorSum = constrain(errorSum, -300, 300);
+
+  motorPower = Kp*(a_err) + Ki*(errorSum)*sampleTime - Kd*(c_angle-p_angle)/sampleTime;
+  p_angle = c_angle;
+
 }
